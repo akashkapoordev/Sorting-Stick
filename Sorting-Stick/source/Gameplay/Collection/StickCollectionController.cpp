@@ -5,6 +5,7 @@
 #include "Global/ServiceLocator.h"
 #include "Gameplay/Collection/Stick.h"
 #include <random>
+#include <iostream>
 
 namespace Gameplay
 {
@@ -29,6 +30,7 @@ namespace Gameplay
 
 		void StickCollectionController::initialize()
 		{
+			sort_state = SortState::NOT_SORTING;
 			collection_view->initialize(this);
 			initializeSticks();
 			reset();
@@ -78,6 +80,7 @@ namespace Gameplay
 
 			// Calculate the width of each rectangle
 			float rectangle_width = remaining_space / collection_model->number_of_elements;
+			std::cout << "Total Space: " << total_space << ", Total Spacing: " << total_spacing << ", Rectangle Width: " << rectangle_width << std::endl;
 
 			return rectangle_width;
 		}
@@ -93,7 +96,7 @@ namespace Gameplay
 			{
 				float x_position = (i * sticks[i]->stick_view->getSize().x) + ((i + 1) * collection_model->elements_spacing);
 				float y_position = collection_model->element_y_position - sticks[i]->stick_view->getSize().y;
-
+			
 				sticks[i]->stick_view->setPosition(sf::Vector2f(x_position, y_position));
 			}
 		}
@@ -114,7 +117,12 @@ namespace Gameplay
 
 		void StickCollectionController::processSortThreadState()
 		{
-			if (sort_thread.joinable() && isCollectionSorted()) sort_thread.join();
+			if (sort_thread.joinable() && isCollectionSorted())
+			{
+				sort_thread.join();
+				sort_state = Collection::SortState::NOT_SORTING;
+
+			}
 		}
 
 
@@ -131,6 +139,8 @@ namespace Gameplay
 
 		void StickCollectionController::reset()
 		{
+			color_delay = 0;
+			sort_state = Collection::SortState::NOT_SORTING;
 			current_operation_delay = 0;
 			if (sort_thread.joinable()) sort_thread.join();
 
@@ -141,15 +151,17 @@ namespace Gameplay
 
 		void StickCollectionController::sortElements(SortType sort_type)
 		{
+			color_delay = collection_model->color_delay;
 			current_operation_delay = collection_model->operation_delay;
 			this->sort_type = sort_type;
+			sort_state = Gameplay::Collection::SortState::SORTING;
 
-			/*switch (sort_type)
+			switch (sort_type)
 			{
 			case Gameplay::Collection::SortType::BUBBLE_SORT:
 				sort_thread = std::thread(&StickCollectionController::processBubbleSort, this);
 				break;
-			}*/
+			}
 		}
 
 		bool StickCollectionController::isCollectionSorted()
@@ -181,6 +193,63 @@ namespace Gameplay
 		int StickCollectionController::getDelayMilliseconds() { return current_operation_delay; }
 
 		sf::String StickCollectionController::getTimeComplexity() { return time_complexity; }
+
+		void StickCollectionController::setCompletedColor()
+		{
+			for (int i = 0; i < sticks.size(); i++)
+			{
+				if (sort_state == Collection::SortState::NOT_SORTING) break;
+				sticks[i]->stick_view->setFillColor(collection_model->element_color);
+
+			}
+			ServiceLocator::getInstance()->getSoundService()->playSound(Sound::SoundType::COMPARE_SFX);
+
+			for (int i = 0; i < sticks.size(); i++)
+			{
+				if (sort_state == Collection::SortState::NOT_SORTING) break;
+				ServiceLocator::getInstance()->getSoundService()->playSound(Sound::SoundType::COMPARE_SFX);
+				std::this_thread::sleep_for(std::chrono::milliseconds(current_operation_delay));
+				sticks[i]->stick_view->setFillColor(collection_model->placement_position_element_color);
+
+			}
+
+		}
+
+		void StickCollectionController::processBubbleSort()
+		{
+			int length = sticks.size();
+			bool swapped;
+
+			do
+			{
+				swapped = false;
+				for (int i = 1; i < length; i++)
+				{
+					if (sort_state == Collection::SortState::NOT_SORTING) break;
+					number_of_array_access += 2;
+					number_of_comparisons++;
+					sticks[i]->stick_view->setFillColor(collection_model->processing_element_color);
+					sticks[i - 1]->stick_view->setFillColor(collection_model->processing_element_color);
+					ServiceLocator::getInstance()->getSoundService()->playSound(Sound::SoundType::COMPARE_SFX);
+					if (sticks[i - 1]->data > sticks[i]->data)
+					{
+						Stick* temp = sticks[i];
+						sticks[i] = sticks[i - 1];
+						sticks[i - 1] = temp;
+						swapped = true;
+					}
+					std::this_thread::sleep_for(std::chrono::milliseconds(current_operation_delay));
+					sticks[i]->stick_view->setFillColor(collection_model->element_color);
+					sticks[i - 1]->stick_view->setFillColor(collection_model->element_color);
+					updateStickPosition();
+				}
+				sticks[length-1]->stick_view->setFillColor(collection_model->placement_position_element_color);
+				
+				length--;
+			} while (swapped);
+
+			setCompletedColor();
+		}
 	}
 }
 

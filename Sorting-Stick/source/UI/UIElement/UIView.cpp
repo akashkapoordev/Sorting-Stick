@@ -38,6 +38,7 @@ namespace UI
 			sf::Vector2f reference_resolution = ServiceLocator::getInstance()->getGraphicService()->getReferenceResolution();
 
 			float adjusted_x_position = (position.x / reference_resolution.x) * game_window->getSize().x;
+           
 			float adjusted_y_position = (position.y / reference_resolution.y) * game_window->getSize().y;
 
 			return sf::Vector2f(adjusted_x_position, adjusted_y_position);
