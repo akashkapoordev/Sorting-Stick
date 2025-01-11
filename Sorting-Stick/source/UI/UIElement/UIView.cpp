@@ -36,13 +36,15 @@ namespace UI
 		sf::Vector2f UIView::getPositionForCurrentResolution(sf::Vector2f position)
 		{
 			sf::Vector2f reference_resolution = ServiceLocator::getInstance()->getGraphicService()->getReferenceResolution();
+			sf::Vector2f current_resolution = sf::Vector2f(game_window->getSize().x, game_window->getSize().y);
 
-			float adjusted_x_position = (position.x / reference_resolution.x) * game_window->getSize().x;
-           
-			float adjusted_y_position = (position.y / reference_resolution.y) * game_window->getSize().y;
+			// Scale position
+			float adjusted_x_position = (position.x / reference_resolution.x) * current_resolution.x;
+			float adjusted_y_position = (position.y / reference_resolution.y) * current_resolution.y;
 
 			return sf::Vector2f(adjusted_x_position, adjusted_y_position);
 		}
+
 
 		sf::Vector2f UIView::getScaleForCurrentResolution(float width, float height)
 		{

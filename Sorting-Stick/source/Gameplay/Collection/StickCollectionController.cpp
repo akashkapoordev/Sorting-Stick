@@ -66,24 +66,45 @@ namespace Gameplay
 
 		float StickCollectionController::calculateStickWidth()
 		{
+			// Get current screen width
 			float total_space = static_cast<float>(ServiceLocator::getInstance()->getGraphicService()->getGameWindow()->getSize().x);
 
-			// Calculate total spacing as 10% of the total space
+			// Reference resolution to scale
+			sf::Vector2f reference_resolution = ServiceLocator::getInstance()->getGraphicService()->getReferenceResolution();
+
+			// Calculate scaling factor based on current and reference resolution
+			float scaling_factor = total_space / reference_resolution.x;
+
+			// Calculate total spacing (e.g., 10% of the total space)
 			float total_spacing = collection_model->space_percentage * total_space;
 
-			// Calculate the space between each stick
+			// Calculate spacing between sticks
 			float space_between = total_spacing / (collection_model->number_of_elements - 1);
 			collection_model->setElementSpacing(space_between);
 
-			// Calculate the remaining space for the rectangles
+			// Calculate remaining space for the sticks
 			float remaining_space = total_space - total_spacing;
 
-			// Calculate the width of each rectangle
+			// Calculate rectangle width, ensuring it scales with resolution
 			float rectangle_width = remaining_space / collection_model->number_of_elements;
-			std::cout << "Total Space: " << total_space << ", Total Spacing: " << total_spacing << ", Rectangle Width: " << rectangle_width << std::endl;
+
+			// Scale width and spacing if total width exceeds screen width
+			float total_width = (rectangle_width * collection_model->number_of_elements) +
+				(space_between * (collection_model->number_of_elements - 1));
+			if (total_width > total_space)
+			{
+				float scale_factor = total_space / total_width;
+				rectangle_width *= scale_factor;
+				collection_model->setElementSpacing(space_between * scale_factor);
+			}
+
+			std::cout << "Screen Width: " << total_space << ", Total Spacing: " << total_spacing
+				<< ", Rectangle Width: " << rectangle_width << ", Total Width: " << total_width << std::endl;
 
 			return rectangle_width;
 		}
+
+
 
 		float StickCollectionController::calculateStickHeight(int array_pos)
 		{
@@ -92,14 +113,25 @@ namespace Gameplay
 
 		void StickCollectionController::updateStickPosition()
 		{
+			float screen_width = static_cast<float>(ServiceLocator::getInstance()->getGraphicService()->getGameWindow()->getSize().x);
+
+			// Total width available for sticks, excluding spacing
+			float total_stick_width = screen_width * (1.0f - collection_model->space_percentage);
+
+			// Calculate stick width and spacing proportionally
+			float rectangle_width = total_stick_width / collection_model->number_of_elements;
+			float spacing = (screen_width - total_stick_width) / (collection_model->number_of_elements + 1);
+
 			for (int i = 0; i < sticks.size(); i++)
 			{
-				float x_position = (i * sticks[i]->stick_view->getSize().x) + ((i + 1) * collection_model->elements_spacing);
+				// Calculate positions proportionally
+				float x_position = spacing + i * (rectangle_width + spacing);
 				float y_position = collection_model->element_y_position - sticks[i]->stick_view->getSize().y;
-			
+
 				sticks[i]->stick_view->setPosition(sf::Vector2f(x_position, y_position));
 			}
 		}
+
 
 		void StickCollectionController::shuffleSticks()
 		{
@@ -160,6 +192,7 @@ namespace Gameplay
 			{
 			case Gameplay::Collection::SortType::BUBBLE_SORT:
 				sort_thread = std::thread(&StickCollectionController::processBubbleSort, this);
+				time_complexity = "O(n^2)";
 				break;
 			}
 		}
