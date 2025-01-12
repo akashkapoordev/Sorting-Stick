@@ -344,7 +344,7 @@ namespace Gameplay
 					ServiceLocator::getInstance()->getSoundService()->playSound(Sound::SoundType::COMPARE_SFX);
 					sticks[j]->stick_view->setFillColor(collection_model->processing_element_color);
 					number_of_comparisons++;
-					number_of_array_access++;
+					number_of_array_access += 2;
 					std::this_thread::sleep_for(std::chrono::milliseconds(current_operation_delay));
 
 					if (sticks[min_index]->data > sticks[j]->data)
@@ -364,7 +364,7 @@ namespace Gameplay
 				Stick* stick = sticks[min_index];
 				sticks[min_index] = sticks[i];
 				sticks[i] = stick;
-				number_of_array_access++;
+				number_of_array_access += 3;
 				sticks[i]->stick_view->setFillColor(collection_model->element_color);
 				updateStickPosition();
 				sticks[i]->stick_view->setFillColor(collection_model->placement_position_element_color);
