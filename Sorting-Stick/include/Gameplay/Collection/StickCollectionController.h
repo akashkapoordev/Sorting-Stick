@@ -70,6 +70,7 @@ namespace Gameplay
 
             void setCompletedColor();
             void processBubbleSort();
+            void processInsertionSort();
 
         };
     }
