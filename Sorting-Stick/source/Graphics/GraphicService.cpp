@@ -50,9 +50,9 @@ namespace Graphics
 		game_window->setFramerateLimit(frame_rate_to_set);
 	}
 
-	void GraphicService::update() { }
+	void GraphicService::update() {}
 
-	void GraphicService::render() { }
+	void GraphicService::render() {}
 
 	bool GraphicService::isGameWindowOpen()
 	{
