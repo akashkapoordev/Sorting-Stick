@@ -197,9 +197,15 @@ namespace Gameplay
 			case Gameplay::Collection::SortType::INSERTION_SORT:
 				sort_thread = std::thread(&StickCollectionController::processInsertionSort, this);
 				time_complexity = "O(n^2)";
+				break;
 			case Gameplay::Collection::SortType::SELECTION_SORT:
 				sort_thread = std::thread(&StickCollectionController::processSelectionSort, this);
 				time_complexity = "O(n^2)";
+				break;
+			case Gameplay::Collection::SortType::MERGE_SORT:
+				sort_thread = std::thread(&StickCollectionController::processInPlaceMergeSort, this);
+				time_complexity = "O(n^2)";
+				break;
 			}
 			
 
@@ -371,6 +377,60 @@ namespace Gameplay
 
 			}
 			setCompletedColor();
+		}
+		void StickCollectionController::processInPlaceMergeSort()
+		{
+			inPlaceMergeSort(0, sticks.size() - 1);
+			setCompletedColor();
+		}
+		void StickCollectionController::inPlaceMerge(int left, int mid, int right)
+		{
+			int start2 = mid + 1;
+			if (sticks[mid]->data <= sticks[start2]->data)
+			{
+				number_of_comparisons++;
+				number_of_array_access++;
+				return;
+			}
+
+			while (sticks[left]->data <= mid && start2 <= sticks[right]->data)
+			{
+				number_of_comparisons++;
+				number_of_array_access++;
+				if (sticks[left]->data < sticks[start2]->data)
+				{
+					left++;
+				}
+				else
+				{
+					int temp = sticks[start2]->data;
+					for (int k = start2; k > left; k--)
+					{
+						sticks[k]->data = sticks[k - 1]->data;
+					}
+
+					sticks[left]->data = temp;
+					number_of_array_access++;
+					left++;
+					start2++;
+					mid++;
+				}
+				updateStickPosition();
+			}
+
+			ServiceLocator::getInstance()->getSoundService()->playSound(Sound::SoundType::COMPARE_SFX);
+			sticks[left - 1]->stick_view->setFillColor(collection_model->processing_element_color);
+			std::this_thread::sleep_for(std::chrono::milliseconds(current_operation_delay));
+		}
+		void StickCollectionController::inPlaceMergeSort(int left, int right)
+		{
+			if (left < right)
+			{
+				int mid = left + (right - left) / 2;
+				inPlaceMergeSort(left,mid);
+				inPlaceMergeSort(mid + 1, right);
+				inPlaceMerge(left, mid, right);
+			}
 		}
 	}
 }

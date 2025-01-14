@@ -72,6 +72,10 @@ namespace Gameplay
             void processBubbleSort();
             void processInsertionSort();
             void processSelectionSort();
+            void processInPlaceMergeSort();
+
+            void inPlaceMerge(int left,int mid,int right);
+            void inPlaceMergeSort(int left, int right);
 
         };
     }
