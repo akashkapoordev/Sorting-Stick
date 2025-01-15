@@ -81,6 +81,10 @@ namespace Gameplay
             void merge(int left, int mid, int right);
             void mergeSort(int left, int right);
 
+            void processQuickSort();
+            int partition(int low, int high);
+            void quickSort(int low,int high);
+
         };
     }
 }
