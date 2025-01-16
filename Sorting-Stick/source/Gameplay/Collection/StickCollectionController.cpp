@@ -177,7 +177,7 @@ namespace Gameplay
 				break;
 			case Gameplay::Collection::SortType::RADIX_SORT:
 				sort_thread = std::thread(&StickCollectionController::processRadixSort, this);
-				time_complexity = "O(n Log n)";
+				time_complexity = "O(w*(n+k))";
 				break;
 			}
 			
