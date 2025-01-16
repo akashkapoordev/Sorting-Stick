@@ -85,6 +85,11 @@ namespace Gameplay
             int partition(int low, int high);
             void quickSort(int low,int high);
 
+            void processRadixSort();
+            void countSort(int exponent);
+            void updateStickPosition(int i);
+            void radixSort();
+
         };
     }
 }
